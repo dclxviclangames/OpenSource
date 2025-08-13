@@ -7,3 +7,4 @@
 ## Add you Gemini API Key in index.html const apiKey = " ";
 
 ## [seeexample](https://dclxviclan.itch.io/aiwithanimation)
+![](https://github.com/dclxviclangames/OpenSource/blob/main/GeminiMetaAvatarUnity3D/Dclxviclan.png)
