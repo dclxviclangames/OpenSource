@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dclxviclan best friend Gemini</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom styles for Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .main-content-wrapper {
+                flex-direction: row;
+                justify-content: center;
+                align-items: flex-start;
+            }
+        }
+
+        .unity-container {
+            flex-shrink: 0;
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #2d3748;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .unity-container {
+                width: 600px;
+                height: 600px;
+            }
+        }
+
+        .unity-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .unity-loading-bar {
+            position: absolute;
+            width: 80%;
+            max-width: 300px;
+            height: 20px;
+            background-color: rgba(74, 85, 104, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .unity-progress-bar-full {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+        }
+
+        .unity-loader-text {
+            color: #a0aec0;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #2d3748;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 400px;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding-right: 10px;
+        }
+            /* Стилизация скроллбара для Webkit-браузеров */
+            .chat-messages::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .chat-messages::-webkit-scrollbar-track {
+                background: #3b4455;
+                border-radius: 10px;
+            }
+
+            .chat-messages::-webkit-scrollbar-thumb {
+                background: #66ff66;
+                border-radius: 10px;
+            }
+
+                .chat-messages::-webkit-scrollbar-thumb:hover {
+                    background: #4CAF50;
+                }
+
+        .chat-message {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+            .chat-message.user {
+                justify-content: flex-end;
+            }
+
+            .chat-message.bot {
+                justify-content: flex-start;
+            }
+
+        .message-bubble {
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 80%;
+            cursor: pointer;
+        }
+
+            .message-bubble.user {
+                background-color: #4CAF50;
+                color: white;
+                border-bottom-right-radius: 5px;
+            }
+
+            .message-bubble.bot {
+                background-color: #3b4455;
+                color: white;
+                border-bottom-left-radius: 5px;
+            }
+
+        .input-container {
+            display: flex;
+            margin-top: 20px;
+            align-items: center;
+        }
+
+            .input-container input {
+                flex-grow: 1;
+                padding: 10px;
+                border-radius: 20px;
+                border: none;
+                background-color: #4a5568;
+                color: white;
+            }
+
+            .input-container button {
+                padding: 10px 15px;
+                border-radius: 20px;
+                color: white;
+                border: none;
+                cursor: pointer;
+                margin-left: 10px;
+                transition: background-color 0.3s;
+            }
+
+                .input-container button#send-button {
+                    background-color: #4CAF50;
+                }
+
+                    .input-container button#send-button:hover {
+                        background-color: #45a049;
+                    }
+
+                .input-container button#voice-input-button {
+                    background-color: #f56565;
+                }
+
+                    .input-container button#voice-input-button:hover {
+                        background-color: #e53e3e;
+                    }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .voice-active {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Styles for the loading overlay */
+        .initial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+        }
+
+            .initial-overlay h2 {
+                font-size: 2.5rem;
+                color: #66ff66;
+                margin-bottom: 20px;
+            }
+
+            .initial-overlay p {
+                font-size: 1.2rem;
+                color: #a0aec0;
+                margin-bottom: 30px;
+            }
+
+            .initial-overlay button {
+                padding: 15px 30px;
+                font-size: 1.2rem;
+                background-color: #4CAF50;
+                color: white;
+                border-radius: 8px;
+                border: none;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+                .initial-overlay button:hover {
+                    background-color: #45a049;
+                }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <!-- Initial Overlay -->
+    <div class="initial-overlay" id="initial-overlay">
+        <h2>Добро пожаловать в AI-друга Dclxviclan!</h2>
+        <p>Нажмите кнопку, чтобы начать взаимодействие и загрузить Unity WebGL.</p>
+        <button id="start-chat-button">Начать чат и загрузить Unity</button>
+    </div>
+
+    <h1 class="text-3xl font-bold text-center mb-6 text-green-500">Dclxviclan best friend Gemini</h1>
+    <div class="main-content-wrapper">
+        <!-- Unity WebGL Player -->
+        <div class="unity-container" id="unity-container">
+            <canvas id="unity-canvas" class="unity-canvas"></canvas>
+            <div class="unity-loading-bar" id="unity-loading-bar">
+                <div class="unity-progress-bar-full" id="unity-progress-bar-full"></div>
+                <p class="unity-loader-text" id="unity-loader-text">Загрузка Unity...</p>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages p-4 bg-gray-800 rounded-lg">
+                <!-- Initial message from the bot will be appended here -->
+            </div>
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Введите ваш вопрос..." class="focus:ring-green-500 focus:border-green-500">
+                <button id="voice-input-button" title="Голосовой ввод"><i class="fas fa-microphone"></i></button>
+                <button id="send-button" title="Отправить"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <!-- Опциональная кнопка для очистки чата -->
+            <button id="clear-chat-button" class="mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-500">
+                Очистить чат
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Unity WebGL Loader ---
+        var unityInstance = null; // Глобальная переменная для экземпляра Unity
+
+        // Укажите ПУТЬ к вашей WebGL сборке.
+        // Если файлы сборки находятся в папке 'WebGLBuild' рядом с index.html, то:
+        var buildUrl = "Build"; // <-- Убедитесь, что это соответствует имени папки вашей сборки
+        var loaderUrl = buildUrl + "/WebGLBuild.loader.js"; // <-- Обновите имя файла
+        var config = {
+            dataUrl: buildUrl + "/WebGLBuild.data", // <-- Обновите имя файла
+            frameworkUrl: buildUrl + "/WebGLBuild.framework.js", // <-- Обновите имя файла
+            codeUrl: buildUrl + "/WebGLBuild.wasm", // <-- Обновите имя файла
+            streamingAssetsUrl: buildUrl + "/StreamingAssets",
+            companyName: "Dclxviclan",
+            productName: "WebGL Build",
+            productVersion: "1.0",
+        };
+
+        var container = document.querySelector("#unity-container");
+        var canvas = document.querySelector("#unity-canvas");
+        var loadingBar = document.querySelector("#unity-loading-bar");
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
+        var unityLoaderText = document.querySelector("#unity-loader-text");
+        var initialOverlay = document.getElementById('initial-overlay');
+        var startChatButton = document.getElementById('start-chat-button');
+
+
+        // --- AI Interaction (Gemini API & Web Speech API) ---
+        const chatMessagesDiv = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const voiceInputButton = document.getElementById('voice-input-button');
+        const clearChatButton = document.getElementById('clear-chat-button'); // Новая кнопка
+        const spinner = document.createElement('i');
+        spinner.classList.add('fas', 'fa-spinner', 'fa-spin', 'ml-3');
+
+        // Имя GameObject вашего персонажа в Unity, к которому прикреплен UnityAnimationController.cs
+        const CHARACTER_OBJECT_NAME = "AIBuddy";
+
+        let chatHistory = [];
+        let recognition;
+        let isSpeaking = false;
+
+        // --- Функции, вызываемые ИЗ JavaScript В Unity (через unityInstance.SendMessage) ---
+        function sendUnityMessage(objectName, methodName, value = "") {
+            if (unityInstance) {
+                unityInstance.SendMessage(objectName, methodName, value);
+                console.log(`Отправлено в Unity: ${objectName}.${methodName}(${value})`);
+            } else {
+                console.warn("UnityInstance не загружен. Сообщение не отправлено.");
+            }
+        }
+
+        // --- Функции, вызываемые ИЗ Unity В JavaScript (через DllImport) ---
+        // Эти функции должны быть доступны в глобальной области видимости (window).
+        // Они будут вызываться из JSLIB, который Unity компилирует.
+
+        window.JsTriggerListenClickInternal = function () {
+            console.log("JS: Получен запрос на активацию Listen от Unity.");
+            if (voiceInputButton && !voiceInputButton.disabled) {
+                voiceInputButton.click();
+            } else {
+                console.warn("Кнопка голосового ввода недоступна или уже активна.");
+            }
+        }
+
+        window.JsAskAIWithPromptInternal = function (prompt) {
+            console.log("JS: Получен запрос на AI от Unity с текстом:", prompt);
+            if (userInput && sendButton && !sendButton.disabled) {
+                userInput.value = prompt;
+                sendButton.click();
+            } else {
+                console.warn("Поле ввода или кнопка отправки недоступны.");
+            }
+        }
+
+        window.ShowBrowserMessageInternal = function (message) {
+            console.log("JS (из Unity):", message);
+        }
+
+
+        const appendMessage = (sender, text) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', sender);
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('message-bubble', sender);
+            bubbleDiv.textContent = text;
+
+            if (sender === 'bot') {
+                bubbleDiv.onclick = () => speakText(text);
+            }
+
+            messageDiv.appendChild(bubbleDiv);
+            chatMessagesDiv.appendChild(messageDiv);
+
+            // Задержка для прокрутки, чтобы DOM успел обновиться
+            setTimeout(() => {
+                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+            }, 10); // Небольшая задержка в 10ms
+        };
+
+        const callGemini = async (prompt) => {
+            sendButton.disabled = true;
+            sendButton.classList.add('opacity-50');
+            sendButton.innerHTML = '';
+            sendButton.appendChild(spinner);
+            userInput.disabled = true;
+            voiceInputButton.disabled = true;
+
+            sendUnityMessage(CHARACTER_OBJECT_NAME, "OnAIResponseStart");
+
+            try {
+                // ПРОВЕРКА НА ПУСТОЙ PROMPT, КОТОРЫЙ МОЖЕТ ВЫЗВАТЬ 400 BAD REQUEST
+                if (!prompt || prompt.trim() === "") {
+                    throw new Error("Пустой запрос к AI. Пожалуйста, введите текст.");
+                }
+
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+
+                // --- ОТЛАДОЧНЫЙ ВЫВОД ЗАПРОСА ---
+                console.log("Отправляем AI запрос:", JSON.stringify(payload));
+                // ----------------------------------
+
+                const apiKey = "AIzaSyDsSy2SBIhesbML__a0CLZaWxu-a4wv51s"; // <-- Вставьте сюда ваш API-ключ Gemini!
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                // Проверяем, что ответ OK (статус 200)
+                if (!response.ok) {
+                    const errorBody = await response.text(); // Пробуем прочитать тело ошибки
+                    throw new Error(`HTTP error! Status: ${response.status}. Body: ${errorBody}`);
+                }
+
+                const result = await response.json();
+
+                let text = "Извините, произошла ошибка при получении ответа от AI. Пожалуйста, попробуйте еще раз.";
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    text = result.candidates[0].content.parts[0].text;
+                    chatHistory.push({ role: "model", parts: [{ text: text }] });
+                }
+
+                appendMessage('bot', text);
+                sendUnityMessage(CHARACTER_OBJECT_NAME, "OnAIResponseEnd");
+                speakText(text);
+
+            } catch (error) {
+                console.error("API call failed:", error);
+                appendMessage('bot', `Извините, произошла ошибка: ${error.message}. Попробуйте еще раз.`);
+                sendUnityMessage(CHARACTER_OBJECT_NAME, "OnAIResponseEnd");
+            } finally {
+                if (!isSpeaking) {
+                    sendButton.disabled = false;
+                    sendButton.classList.remove('opacity-50');
+                    sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    userInput.disabled = false;
+                    voiceInputButton.disabled = false;
+                    userInput.value = '';
+                    userInput.focus();
+                }
+            }
+        };
+
+        const sendMessage = () => {
+            const userText = userInput.value.trim();
+            if (userText) {
+                appendMessage('user', userText);
+                callGemini(userText);
+            } else {
+                appendMessage('bot', "Пожалуйста, введите ваш вопрос.");
+            }
+        };
+
+        // --- Web Speech API (Text-to-Speech) ---
+        const speakText = (text, onEndCallback = null) => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ru-RU';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+
+                isSpeaking = true;
+                sendUnityMessage(CHARACTER_OBJECT_NAME, "OnTTSStart");
+
+                sendButton.disabled = true;
+                voiceInputButton.disabled = true;
+
+                utterance.onend = () => {
+                    console.log('TTS finished speaking.');
+                    isSpeaking = false;
+                    sendUnityMessage(CHARACTER_OBJECT_NAME, "OnTTSEnd");
+                    sendButton.disabled = false;
+                    voiceInputButton.disabled = false;
+                    if (onEndCallback) {
+                        onEndCallback();
+                    }
+                };
+                utterance.onerror = (event) => {
+                    console.error('TTS error:', event.error);
+                    isSpeaking = false;
+                    sendUnityMessage(CHARACTER_OBJECT_NAME, "OnTTSEnd");
+                    sendButton.disabled = false;
+                    voiceInputButton.disabled = false;
+                    if (onEndCallback) {
+                        onEndCallback();
+                    }
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn("Web Speech Synthesis Not Supported");
+                sendButton.disabled = false;
+                voiceInputButton.disabled = false;
+                if (onEndCallback) {
+                    onEndCallback();
+                }
+            }
+        };
+
+        // --- Web Speech API (Speech-to-Text) ---
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'ru-RU';
+
+            recognition.onstart = () => {
+                voiceInputButton.classList.add('voice-active');
+                voiceInputButton.disabled = true;
+                sendButton.disabled = true;
+                userInput.placeholder = "Слушаю...";
+                sendUnityMessage(CHARACTER_OBJECT_NAME, "StartListenAnimation");
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                appendMessage('user', transcript);
+                callGemini(transcript);
+            };
+
+            recognition.onend = () => {
+                voiceInputButton.classList.remove('voice-active');
+                voiceInputButton.disabled = false;
+                sendButton.disabled = false;
+                userInput.placeholder = "Введите ваш вопрос...";
+                sendUnityMessage(CHARACTER_OBJECT_NAME, "StopListenAnimation");
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                appendMessage('bot', `Произошла ошибка распознавания речи: ${event.error}. Пожалуйста, попробуйте еще раз.`);
+                voiceInputButton.classList.remove('voice-active');
+                voiceInputButton.disabled = false;
+                sendButton.disabled = false;
+                userInput.placeholder = "Введите ваш вопрос...";
+                sendUnityMessage(CHARACTER_OBJECT_NAME, "StopListenAnimation");
+            };
+        } else {
+            voiceInputButton.style.display = 'none';
+            console.warn('Web Speech Recognition API is not supported in this browser.');
+        }
+
+        // Event Listeners for buttons
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        voiceInputButton.addEventListener('click', () => {
+            try {
+                if (recognition) {
+                    recognition.start();
+                }
+            } catch (e) {
+                console.error("Error starting speech recognition:", e);
+                voiceInputButton.classList.remove('voice-active');
+                voiceInputButton.disabled = false;
+                sendButton.disabled = false;
+                userInput.placeholder = "Введите ваш вопрос...";
+                appendMessage('bot', "Не удалось запустить распознавание речи. Возможно, микрофон занят или требуется разрешение.");
+            }
+        });
+
+        // Event Listener for Clear Chat Button
+        clearChatButton.addEventListener('click', () => {
+            chatMessagesDiv.innerHTML = ''; // Очищаем содержимое чата
+            chatHistory = []; // Очищаем историю чата
+            // Если вы хотите, чтобы первое сообщение бота снова появлялось, добавьте его сюда
+            // const initialMessageText = "Привет! Я твой AI-друг...";
+            // chatHistory.push({ role: "model", parts: [{ text: initialMessageText }] });
+            // appendMessage('bot', initialMessageText);
+        });
+
+
+        // Инициализация первого сообщения бота
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialMessageText = "Привет! Я твой AI-друг, созданный с Gemini для YouTube-канала Dclxviclan. Задавай мне вопросы! 👁👄👁";
+            chatHistory.push({ role: "model", parts: [{ text: initialMessageText }] });
+            appendMessage('bot', initialMessageText);
+
+            startChatButton.addEventListener('click', () => {
+                initialOverlay.style.display = 'none';
+                loadingBar.style.display = "flex";
+
+                if (!window.unityLoaderScriptLoaded) {
+                    var script = document.createElement("script");
+                    script.src = loaderUrl;
+                    script.onload = () => {
+                        window.unityLoaderScriptLoaded = true;
+                        createUnityInstance(canvas, config, (progress) => {
+                            progressBarFull.style.width = 100 * progress + "%";
+                            unityLoaderText.innerText = `Загрузка Unity... ${Math.round(progress * 100)}%`;
+                        }).then((unity) => {
+                            unityInstance = unity;
+                            loadingBar.style.display = "none";
+                            console.log("Unity WebGL Player loaded successfully!");
+                            speakText(initialMessageText);
+                        }).catch((message) => {
+                            console.error("Unity failed to load:", message);
+                            alert("Не удалось загрузить Unity WebGL. Возможно, проблема с файлами сборки или CORS. Проверьте консоль браузера.");
+                        });
+                    };
+                    document.body.appendChild(script);
+                } else {
+                    speakText(initialMessageText);
+                    loadingBar.style.display = "none";
+                }
+                userInput.focus();
+            });
+        });
+
+    </script>
+</body>
+</html>
