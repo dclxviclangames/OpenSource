@@ -1,0 +1,24 @@
+--- !!! add this lines in WebGL index.html build PERMISSION POLICY !!! ---
+
+<head>
+    <script>
+        // --- !!! ОБХОД ОШИБКИ PERMISSION POLICY !!! ---
+        // Переопределяем функции геймпада и навигатора до того, как Unity их вызовет.
+        // Это принудительно "обманывает" Unity, сообщая, что геймпадов нет.
+        if (typeof navigator !== 'undefined') {
+            
+            // 1. Отключаем доступ к геймпадам
+            if (typeof navigator.getGamepads !== 'undefined') {
+                navigator.getGamepads = function() {
+                    console.log("Gamepad access blocked to prevent Permission Policy error.");
+                    return []; // Возвращаем пустой массив, геймпады не найдены
+                };
+            }
+
+            // 2. Отключаем доступ к 'navigator.mediaDevices' (если Unity пытается использовать)
+            if (typeof navigator.mediaDevices !== 'undefined') {
+                navigator.mediaDevices = {};
+            }
+        }
+    </script>
+</head>
