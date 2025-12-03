@@ -1,0 +1,9 @@
+name = "<название-вашего-воркера>"
+main = "src/index.js" # Укажите путь к вашему файлу Worker
+compatibility_date = "2024-12-03" # Рекомендуется использовать текущую дату
+
+[[d1_databases]]
+binding = "DB" # Это имя, по которому вы обращаетесь к БД в коде (env.DB).
+database_name = "<название-вашей-бд>"
+database_id = "<ваш-database-id>"
+
