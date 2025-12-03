@@ -1,0 +1,281 @@
+name = "<название-вашего-воркера>"
+main = "src/index.js" # Укажите путь к вашему файлу Worker
+compatibility_date = "2024-12-03" # Рекомендуется использовать текущую дату
+
+[[d1_databases]]
+binding = "DB" # Это имя, по которому вы обращаетесь к БД в коде (env.DB).
+database_name = "<название-вашей-бд>"
+database_id = "<ваш-database-id>"
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const { DB } = env;
+
+    // Эндпоинт для загрузки данных игрока
+    if (url.pathname === '/api/player/load' && request.method === 'GET') {
+      try {
+        const playerId = url.searchParams.get('id');
+        if (!playerId) {
+          return new Response(JSON.stringify({ error: 'Missing player id' }), { status: 400 });
+        }
+
+        const result = await DB.prepare('SELECT currency, owned_skins, active_skin FROM players WHERE id = ?')
+          .bind(playerId)
+          .first();
+
+        if (result) {
+          return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
+        } else {
+          // Создание нового игрока, если не найден
+          await DB.prepare('INSERT INTO players (id, currency, owned_skins, active_skin) VALUES (?, ?, ?, ?)')
+            .bind(playerId, 100, '["default"]', 'default') // Начальные данные
+            .run();
+          return new Response(JSON.stringify({ currency: 100, owned_skins: ['default'], active_skin: 'default' }), { headers: { 'Content-Type': 'application/json' } });
+        }
+      } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+      }
+    }
+
+    // Эндпоинт для покупки скина (POST-запрос)
+    if (url.pathname === '/api/skin/purchase' && request.method === 'POST') {
+      try {
+        const { playerId, skinId, cost } = await request.json();
+        if (!playerId || !skinId || !cost) {
+          return new Response(JSON.stringify({ error: 'Missing data' }), { status: 400 });
+        }
+
+        // 1. Получение данных игрока
+        const player = await DB.prepare('SELECT currency, owned_skins FROM players WHERE id = ?')
+          .bind(playerId)
+          .first();
+
+        if (!player) {
+          return new Response(JSON.stringify({ error: 'Player not found' }), { status: 404 });
+        }
+
+        // Проверка успешной покупки:
+        // 2. Проверка, достаточно ли валюты
+        if (player.currency < cost) {
+          return new Response(JSON.stringify({ error: 'Insufficient currency' }), { status: 403 });
+        }
+
+        // 3. Проверка, не куплен ли уже скин
+        const ownedSkins = JSON.parse(player.owned_skins);
+        if (ownedSkins.includes(skinId)) {
+          return new Response(JSON.stringify({ error: 'Skin already owned' }), { status: 409 });
+        }
+
+        // 4. Обновление базы данных (транзакция)
+        const updatedSkins = JSON.stringify([...ownedSkins, skinId]);
+        const result = await DB.prepare('UPDATE players SET currency = currency - ?, owned_skins = ? WHERE id = ?')
+          .bind(cost, updatedSkins, playerId)
+          .run();
+        
+        if (result.meta.changes === 0) {
+            return new Response(JSON.stringify({ error: 'Failed to update player data' }), { status: 500 });
+        }
+
+        return new Response(JSON.stringify({ message: 'Purchase successful', new_currency: player.currency - cost }), { status: 200 });
+      } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+      }
+    }
+
+    // Эндпоинт для применения скина (POST-запрос)
+    if (url.pathname === '/api/skin/apply' && request.method === 'POST') {
+      try {
+        const { playerId, skinId } = await request.json();
+        if (!playerId || !skinId) {
+          return new Response(JSON.stringify({ error: 'Missing data' }), { status: 400 });
+        }
+        
+        // 1. Проверка, куплен ли скин
+        const player = await DB.prepare('SELECT owned_skins FROM players WHERE id = ?')
+          .bind(playerId)
+          .first();
+
+        const ownedSkins = JSON.parse(player.owned_skins);
+        if (!ownedSkins.includes(skinId)) {
+            return new Response(JSON.stringify({ error: 'Skin not owned' }), { status: 403 });
+        }
+        
+        // 2. Обновление активного скина
+        await DB.prepare('UPDATE players SET active_skin = ? WHERE id = ?')
+          .bind(skinId, playerId)
+          .run();
+
+        return new Response(JSON.stringify({ message: 'Skin applied successfully' }), { status: 200 });
+      } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+      }
+    }
+
+    return new Response('Not Found', { status: 404 });
+  },
+};
+
+
+CREATE TABLE players (
+    player_id TEXT PRIMARY KEY,
+    currency INTEGER NOT NULL DEFAULT 0,
+    owned_skins TEXT NOT NULL DEFAULT '[]', -- JSON-массив
+    active_skin TEXT NOT NULL DEFAULT 'default'
+);
+
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Networking;
+using Photon.Pun;
+
+public class PlayerDataManager : MonoBehaviourPunCallbacks
+{
+    public static PlayerDataManager Instance;
+
+    public int currency;
+    public List<string> ownedSkins;
+    public string activeSkin;
+
+    private const string ApiUrl = "https://your-worker-url.your-subdomain.workers.dev"; // Замените на URL вашего Cloudflare Worker
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    public IEnumerator LoadPlayerData(string playerId)
+    {
+        using (UnityWebRequest webRequest = UnityWebRequest.Get($"{ApiUrl}/load?playerId={playerId}"))
+        {
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityWebRequest.Result.Success)
+            {
+                // Обработка успешного ответа
+                var responseJson = JsonUtility.FromJson<PlayerDataResponse>(webRequest.downloadHandler.text);
+                currency = responseJson.currency;
+                ownedSkins = new List<string>(responseJson.owned_skins.Split(','));
+                activeSkin = responseJson.active_skin;
+                Debug.Log("Player data loaded.");
+            }
+            else
+            {
+                Debug.LogError($"Error loading player data: {webRequest.error}");
+            }
+        }
+    }
+
+    public IEnumerator PurchaseSkin(string skinId, int cost)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("playerId", PhotonNetwork.LocalPlayer.UserId);
+        form.AddField("skinId", skinId);
+        form.AddField("cost", cost);
+
+        using (UnityWebRequest webRequest = UnityWebRequest.Post($"{ApiUrl}/purchase", form))
+        {
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityWebRequest.Result.Success)
+            {
+                // Обработка успешной покупки
+                Debug.Log("Skin purchased successfully!");
+                // Обновление локальных данных
+                currency -= cost;
+                ownedSkins.Add(skinId);
+            }
+            else
+            {
+                Debug.LogError($"Error purchasing skin: {webRequest.error}");
+            }
+        }
+    }
+
+    public IEnumerator ApplySkin(string skinId)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("playerId", PhotonNetwork.LocalPlayer.UserId);
+        form.AddField("skinId", skinId);
+
+        using (UnityWebRequest webRequest = UnityWebRequest.Post($"{ApiUrl}/apply", form))
+        {
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.result == UnityWebRequest.Result.Success)
+            {
+                // Обработка успешного применения
+                Debug.Log("Skin applied successfully!");
+                // Обновление локальных данных и отправка события Photon
+                activeSkin = skinId;
+                photonView.RPC("SyncSkin", RpcTarget.AllBuffered, skinId);
+            }
+            else
+            {
+                Debug.LogError($"Error applying skin: {webRequest.error}");
+            }
+        }
+    }
+
+    [PunRPC]
+    void SyncSkin(string skinId)
+    {
+        // Логика применения скина к игроку
+        // Например: GetComponent<PlayerVisuals>().SetSkin(skinId);
+        Debug.Log($"Skin {skinId} synced for player.");
+    }
+}
+
+[System.Serializable]
+public class PlayerDataResponse
+{
+    public int currency;
+    public string owned_skins;
+    public string active_skin;
+}
+
+
+using UnityEngine;
+
+public class SkinManager : MonoBehaviour
+{
+    public SkinData[] skins; // Массив объектов с данными скинов
+
+    public void OnPurchaseButtonClick(string skinId)
+    {
+        // Найти скин и получить его стоимость
+        foreach (var skin in skins)
+        {
+            if (skin.skinId == skinId)
+            {
+                StartCoroutine(PlayerDataManager.Instance.PurchaseSkin(skinId, skin.cost));
+                return;
+            }
+        }
+    }
+
+    public void OnApplyButtonClick(string skinId)
+    {
+        StartCoroutine(PlayerDataManager.Instance.ApplySkin(skinId));
+    }
+}
+
+
+[PunRPC]
+void SyncSkin(string skinId)
+{
+    // Здесь происходит логика применения скина, например:
+    // SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+    // renderer.sprite = Resources.Load<Sprite>("Skins/" + skinId);
+    Debug.Log($"Скин {skinId} применен.");
+}
