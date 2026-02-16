@@ -91,3 +91,38 @@ public class UpgradeZone : MonoBehaviour
         }
     }
 }
+
+using UnityEngine;
+using System.Collections;
+
+public class ResourceSource : MonoBehaviour
+{
+    public GameObject visualModel; // Ссылка на модель (которую будем прятать)
+    public float respawnTime = 5f;
+    public bool isAvailable = true;
+
+    // Метод вызывается, когда игрок или моб "добивает" ресурс
+    public void CollectResource()
+    {
+        if (!isAvailable) return;
+        
+        isAvailable = false;
+        visualModel.SetActive(false); // Прячем модель
+        StartCoroutine(RespawnRoutine());
+    }
+
+    private IEnumerator RespawnRoutine()
+    {
+        yield return new WaitForSeconds(respawnTime);
+        
+        isAvailable = true;
+        visualModel.SetActive(true);
+        // Можно добавить эффект появления (Scale up)
+        visualModel.transform.localScale = Vector3.zero;
+        while(visualModel.transform.localScale.x < 1f)
+        {
+            visualModel.transform.localScale += Vector3.one * Time.deltaTime * 2f;
+            yield return null;
+        }
+    }
+}
