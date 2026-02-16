@@ -39,6 +39,8 @@ public class Stacker : MonoBehaviour
     }
 }
 
+// Renadom Resource.cs stacker.AddToStack(gameObject);
+
 using UnityEngine;
 
 public class UpgradeZone : MonoBehaviour
